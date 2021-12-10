@@ -54,21 +54,31 @@ const App = () => {
 			state: false,
 			value: ""
 		})
+		setOut([]);
 		let flag = true;
 		if ((input.A !== input.B) && (Number(input.value) > 0) && (input.A !== "") && (input.B !== "")) {
-			list.forEach(element => {
-				if (isEqual(element, input)) {
+			for (let i = 0; i < list.length; i++) {
+				if (isEqual(list[i], input)) {
 					setWarning({
 						state: true,
 						value: "There is simliar record available in the Transcation List."
 					})
 					flag = false;
+					break;
 				}
-			});
+				if ((list[i].A === input.A) && (list[i].B === input.B)) {
+					list[i].value = Number(list[i].value) + Number(input.value);
+					flag = false;
+					break;
+				}
+			}
 			if (flag) {
 				setList([
-					...list,
-					input
+					...list, {
+						A: input.A,
+						B: input.B,
+						value: Number(input.value)
+					}
 				]);
 			}
 			setInput({
@@ -96,11 +106,6 @@ const App = () => {
 				setWarning({
 					state: true,
 					value: "Both the name shouldn't be similiar."
-				})
-			} else if (Number(input.value) <= 0) {
-				setWarning({
-					state: true,
-					value: "Money's value should be positive."
 				})
 			}
 		}
@@ -175,73 +180,81 @@ const App = () => {
 			}
 			console.log("balance", balance);
 
-			//final list of transactions
-			let output = [];
+			if (!checkBalance(balance)) {
+				setWarning({
+					state: true,
+					value: "The transction is already in balanced state."
+				})
+			} else {
+				//final list of transactions
+				let output = [];
 
-			while (checkBalance(balance)) {
+				while (checkBalance(balance)) {
 
-				//find the person who owes the most
-				let MaxOwes = -1;
-				//find the person who lent the most
-				let MaxLent = -1;
-				for (let i = 0; i < users.length; i++) {
-					if (MaxOwes > -1) {
-						if (balance[MaxOwes] > balance[i]) {
-							MaxOwes = i;
+					//find the person who owes the most
+					let MaxOwes = -1;
+					//find the person who lent the most
+					let MaxLent = -1;
+					for (let i = 0; i < users.length; i++) {
+						if (MaxOwes > -1) {
+							if (balance[MaxOwes] > balance[i]) {
+								MaxOwes = i;
+							}
+						} else {
+							if (balance[MaxOwes] !== 0) {
+								MaxOwes = i;
+							}
 						}
-					} else {
-						if (balance[MaxOwes] !== 0) {
-							MaxOwes = i;
+						if (MaxLent > -1) {
+							if (balance[MaxLent] < balance[i]) {
+								MaxLent = i;
+							}
+						} else {
+							if (balance[MaxLent] !== 0) {
+								MaxLent = i;
+							}
 						}
 					}
-					if (MaxLent > -1) {
-						if (balance[MaxLent] < balance[i]) {
-							MaxLent = i;
-						}
-					} else {
-						if (balance[MaxLent] !== 0) {
-							MaxLent = i;
-						}
+
+					//insert according transaction in S matrix
+					if (Math.abs(balance[MaxOwes]) > Math.abs(balance[MaxLent])) {
+						output = [
+							...output, {
+								A: users[MaxOwes],
+								B: users[MaxLent],
+								value: Math.abs(balance[MaxLent])
+							}
+						];
+						balance[MaxOwes] = -(Math.abs(balance[MaxOwes]) - Math.abs(balance[MaxLent]));
+						balance[MaxLent] = 0;
+					} else if (Math.abs(balance[MaxOwes]) < Math.abs(balance[MaxLent])) {
+						output = [
+							...output, {
+								A: users[MaxOwes],
+								B: users[MaxLent],
+								value: Math.abs(balance[MaxOwes])
+							}
+						];
+						balance[MaxLent] = Math.abs(balance[MaxLent]) - Math.abs(balance[MaxOwes]);
+						balance[MaxOwes] = 0;
+					} else if (Math.abs(balance[MaxOwes]) === Math.abs(balance[MaxLent])) {
+						output = [
+							...output, {
+								A: users[MaxOwes],
+								B: users[MaxLent],
+								value: Math.abs(balance[MaxOwes])
+							}
+						];
+						balance[MaxLent] = 0;
+						balance[MaxOwes] = 0;
 					}
-				}
 
-				//insert according transaction in S matrix
-				if (Math.abs(balance[MaxOwes]) > Math.abs(balance[MaxLent])) {
-					output = [
-						...output, {
-							A: users[MaxOwes],
-							B: users[MaxLent],
-							value: Math.abs(balance[MaxLent])
-						}
-					];
-					balance[MaxOwes] = -(Math.abs(balance[MaxOwes]) - Math.abs(balance[MaxLent]));
-					balance[MaxLent] = 0;
-				} else if (Math.abs(balance[MaxOwes]) < Math.abs(balance[MaxLent])) {
-					output = [
-						...output, {
-							A: users[MaxOwes],
-							B: users[MaxLent],
-							value: Math.abs(balance[MaxOwes])
-						}
-					];
-					balance[MaxLent] = Math.abs(balance[MaxLent]) - Math.abs(balance[MaxOwes]);
-					balance[MaxOwes] = 0;
-				} else if (Math.abs(balance[MaxOwes]) === Math.abs(balance[MaxLent])) {
-					output = [
-						...output, {
-							A: users[MaxOwes],
-							B: users[MaxLent],
-							value: Math.abs(balance[MaxOwes])
-						}
-					];
-					balance[MaxLent] = 0;
-					balance[MaxOwes] = 0;
+					console.log("Balance", balance);
 				}
-
-				console.log("Balance", balance);
+				setOut(output);
 			}
-			setOut(output);
 		} else {
+			setOut([]);
 			setWarning({
 				state: true,
 				value: "Please Add transactions into the List."
