@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/GroupBills/static/css/main.1a8a0596.css",
+    "main.js": "/GroupBills/static/js/main.c980f0db.js",
+    "index.html": "/GroupBills/index.html",
+    "main.1a8a0596.css.map": "/GroupBills/static/css/main.1a8a0596.css.map",
+    "main.c980f0db.js.map": "/GroupBills/static/js/main.c980f0db.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.1a8a0596.css",
+    "static/js/main.c980f0db.js"
+  ]
+}
